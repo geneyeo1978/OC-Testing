@@ -9,36 +9,28 @@
         .container { max-width: 900px; margin: auto; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; }
-        
         .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; }
         .control-group { flex: 1; min-width: 250px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.25rem; }
         .meta { font-size: 0.9rem; color: #4a5568; margin-bottom: 10px; }
         .description { font-size: 0.95rem; margin-bottom: 15px; flex-grow: 1; }
-        
         .feedback-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: auto; }
         textarea { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical; min-height: 60px; box-sizing: border-box; }
-        button { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: 600; transition: background 0.2s; }
-        button:hover { background: #1e4e8c; }
-        
-        .loading { text-align: center; font-style: italic; color: #718096; }
+        button { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>Saints Open Classroom Directory</h1>
-    </header>
+    <header><h1>Saints Open Classroom Directory</h1></header>
 
     <div id="upcoming-section">
         <h2 class="section-title">Next 3 Upcoming Sessions</h2>
-        <div id="upcoming-results" class="grid"><p class="loading">Loading upcoming sessions...</p></div>
+        <div id="upcoming-results" class="grid"></div>
     </div>
 
     <h2 class="section-title">Search Directory</h2>
@@ -52,7 +44,6 @@
             <select id="dateFilter"><option value="">Select a Date...</option></select>
         </div>
     </div>
-
     <div id="search-results" class="grid"></div>
 </div>
 
@@ -61,65 +52,52 @@
     let allData = [];
 
     async function fetchData() {
-        try {
-            const response = await fetch(SCRIPT_URL);
-            allData = await response.json();
-            populateFilters();
-            displayUpcoming();
-        } catch (e) {
-            document.getElementById('upcoming-results').innerHTML = "Error loading data. Check Sheet permissions.";
-        }
+        const response = await fetch(SCRIPT_URL);
+        allData = await response.json();
+        populateFilters();
+        displayUpcoming();
     }
 
     function populateFilters() {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
-        
         const teachers = [...new Set(allData.map(item => item.Name))].sort();
         const dates = [...new Set(allData.map(item => item.Date))].sort();
-
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
     }
 
-    // Convert dd/mm/yy to a real Date object for comparison
     function parseDate(dateStr) {
         const parts = dateStr.split('/');
         return new Date(2000 + parseInt(parts[2]), parts[1] - 1, parts[0]);
     }
 
     function displayUpcoming() {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-
+        const today = new Date(); today.setHours(0,0,0,0);
         const futureOnes = allData
             .filter(item => parseDate(item.Date) >= today)
             .sort((a, b) => parseDate(a.Date) - parseDate(b.Date))
             .slice(0, 3);
-
         renderCards(futureOnes, 'upcoming-results');
     }
 
     function handleFilterChange(type) {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
-        
         let filtered = [];
         if (type === 'teacher' && tSelect.value) {
-            dSelect.value = ""; // Reset date dropdown
+            dSelect.value = ""; 
             filtered = allData.filter(item => item.Name === tSelect.value);
         } else if (type === 'date' && dSelect.value) {
-            tSelect.value = ""; // Reset teacher dropdown
+            tSelect.value = ""; 
             filtered = allData.filter(item => item.Date === dSelect.value);
         }
-
         renderCards(filtered, 'search-results');
     }
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = data.length ? "" : "<p>No sessions found.</p>";
-
         data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card';
@@ -127,7 +105,8 @@
                 <h3>${item.Name}</h3>
                 <div class="meta">
                     📅 <strong>${item.Date}</strong><br>
-                    ⏰ ${item["Start Time"]} - ${item["End Time"]}<br>
+                    ⏰ ${item["start time"]} - ${item["End Time"]}<br>
+                    📍 <strong>Location:</strong> ${item.Location || 'Not Specified'}<br>
                     👥 TG: ${item.TG}
                 </div>
                 <p class="description">${item["Brief description"]}</p>
@@ -144,24 +123,17 @@
         const id = `fb-${name}-${date.replace(/\//g,'')}`;
         const feedbackText = document.getElementById(id).value;
         if(!feedbackText) return alert("Please type feedback first.");
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
-            });
-            alert("Feedback sent to Google Sheet!");
-            document.getElementById(id).value = "";
-        } catch (e) {
-            alert("Error sending feedback.");
-        }
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
+        });
+        alert("Feedback sent!");
+        document.getElementById(id).value = "";
     }
 
     document.getElementById('teacherFilter').addEventListener('change', () => handleFilterChange('teacher'));
     document.getElementById('dateFilter').addEventListener('change', () => handleFilterChange('date'));
-
     fetchData();
 </script>
-
 </body>
 </html>

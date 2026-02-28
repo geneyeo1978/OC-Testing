@@ -20,7 +20,8 @@
         .description { font-size: 0.95rem; margin-bottom: 15px; flex-grow: 1; }
         .feedback-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: auto; }
         textarea { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical; min-height: 60px; box-sizing: border-box; }
-        button { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: 600; }
+        .btn-submit { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: 600; }
+        .btn-submit:disabled { background: #a0aec0; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -52,22 +53,27 @@
     let allData = [];
 
     async function fetchData() {
-        const response = await fetch(SCRIPT_URL);
-        allData = await response.json();
-        populateFilters();
-        displayUpcoming();
+        try {
+            const response = await fetch(SCRIPT_URL);
+            allData = await response.json();
+            populateFilters();
+            displayUpcoming();
+        } catch (e) {
+            console.error("Fetch error:", e);
+        }
     }
 
     function populateFilters() {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
-        const teachers = [...new Set(allData.map(item => item.Name))].sort();
-        const dates = [...new Set(allData.map(item => item.Date))].sort();
+        const teachers = [...new Set(allData.map(item => item.Name))].filter(n => n).sort();
+        const dates = [...new Set(allData.map(item => item.Date))].filter(d => d).sort();
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
     }
 
     function parseDate(dateStr) {
+        if (!dateStr) return new Date(0);
         const parts = dateStr.split('/');
         return new Date(2000 + parseInt(parts[2]), parts[1] - 1, parts[0]);
     }
@@ -98,7 +104,8 @@
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = data.length ? "" : "<p>No sessions found.</p>";
-        data.forEach(item => {
+        data.forEach((item, index) => {
+            const cardId = `card-${containerId}-${index}`;
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
@@ -106,29 +113,51 @@
                 <div class="meta">
                     📅 <strong>${item.Date}</strong><br>
                     ⏰ ${item["start time"]} - ${item["End Time"]}<br>
-                    📍 <strong>Location:</strong> ${item.Location || 'Not Specified'}<br>
+                    📍 <strong>Location:</strong> ${item.Location || 'TBC'}<br>
                     👥 TG: ${item.TG}
                 </div>
                 <p class="description">${item["Brief description"]}</p>
                 <div class="feedback-box">
-                    <textarea id="fb-${item.Name}-${item.Date.replace(/\//g,'')}" placeholder="Leave feedback..."></textarea>
-                    <button onclick="sendFeedback('${item.Name}', '${item.Date}')">Submit Feedback</button>
+                    <textarea id="input-${cardId}" placeholder="Enter feedback here..."></textarea>
+                    <button id="btn-${cardId}" class="btn-submit" onclick="sendFeedback('${item.Name}', '${item.Date}', '${cardId}')">Submit Feedback</button>
                 </div>
             `;
             container.appendChild(card);
         });
     }
 
-    async function sendFeedback(name, date) {
-        const id = `fb-${name}-${date.replace(/\//g,'')}`;
-        const feedbackText = document.getElementById(id).value;
+    async function sendFeedback(name, date, cardId) {
+        const inputField = document.getElementById(`input-${cardId}`);
+        const submitBtn = document.getElementById(`btn-${cardId}`);
+        const feedbackText = inputField.value;
+
         if(!feedbackText) return alert("Please type feedback first.");
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
-        });
-        alert("Feedback sent!");
-        document.getElementById(id).value = "";
+
+        // UI Feedback: Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending...";
+
+        try {
+            // We use 'no-cors' to bypass strict browser checks if the script doesn't return headers
+            // But 'POST' usually needs the response. 
+            const response = await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                cache: "no-cache",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
+            });
+
+            // Since 'no-cors' won't let us see the status, we assume success if it doesn't crash
+            alert("Feedback Sent! Thank you.");
+            inputField.value = ""; // Clear text
+        } catch (e) {
+            console.error(e);
+            alert("Something went wrong. Please check your internet or Google Script deployment.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Feedback";
+        }
     }
 
     document.getElementById('teacherFilter').addEventListener('change', () => handleFilterChange('teacher'));

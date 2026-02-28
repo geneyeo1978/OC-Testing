@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Classrooms Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; }
+        .controls { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 10px; }
+        select { padding: 10px; flex-grow: 1; border-radius: 5px; border: 1px solid #ddd; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 15px; border-left: 5px solid #4A90E2; }
+        .card h3 { margin-top: 0; color: #4A90E2; }
+        .feedback-box { margin-top: 15px; border-top: 1px solid #eee; pt: 10px; }
+        textarea { width: 100%; padding: 10px; margin-top: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #4A90E2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #357ABD; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏫 Open Classrooms Directory</h2>
+    
+    <div class="controls">
+        <select id="teacherFilter"><option value="">Select Teacher</option></select>
+        <select id="dateFilter"><option value="">Select Date</option></select>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3FIN86W5tgHhTBXUTPr-xMYH0WlSkQvgPNdPAXtBFeue8voHsmEo_2a-1OvrrDKce/exec"; // PASTE YOUR URL HERE
+    let allData = [];
+
+    // Fetch data from Google Sheets
+    async function fetchData() {
+        const response = await fetch(SCRIPT_URL);
+        allData = await response.json();
+        populateFilters();
+    }
+
+    function populateFilters() {
+        const tSelect = document.getElementById('teacherFilter');
+        const dSelect = document.getElementById('dateFilter');
+        
+        const teachers = [...new Set(allData.map(item => item.Name))];
+        const dates = [...new Set(allData.map(item => item.Date))];
+
+        teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
+        dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
+    }
+
+    function displayCards() {
+        const teacherVal = document.getElementById('teacherFilter').value;
+        const dateVal = document.getElementById('dateFilter').value;
+        const container = document.getElementById('results');
+        container.innerHTML = "";
+
+        const filtered = allData.filter(item => {
+            return (!teacherVal || item.Name === teacherVal) && (!dateVal || item.Date === dateVal);
+        });
+
+        filtered.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h3>${item.Name}</h3>
+                <p><strong>Date:</strong> ${item.Date} | <strong>Time:</strong> ${item["start time"]} - ${item["End Time"]}</p>
+                <p><strong>TG:</strong> ${item.TG}</p>
+                <p><em>${item["Brief description"]}</em></p>
+                <div class="feedback-box">
+                    <textarea id="fb-${item.Name}-${item.Date}" placeholder="Enter feedback here..."></textarea>
+                    <button onclick="sendFeedback('${item.Name}', '${item.Date}')">Submit Feedback</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    async function sendFeedback(name, date) {
+        const feedbackText = document.getElementById(`fb-${name}-${date}`).value;
+        if(!feedbackText) return alert("Please type something!");
+
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
+        });
+
+        if(response.ok) {
+            alert("Feedback submitted successfully!");
+            document.getElementById(`fb-${name}-${date}`).value = "";
+        }
+    }
+
+    document.getElementById('teacherFilter').addEventListener('change', displayCards);
+    document.getElementById('dateFilter').addEventListener('change', displayCards);
+
+    fetchData();
+</script>
+
+</body>
+</html>

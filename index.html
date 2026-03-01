@@ -64,7 +64,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC6G-z7fTHP4qxr2ayXmb8bruJC67E7TEQzixVog2_I04reypZfMp60mfEmicc5kQK/exec"; // Update with your deployment URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxsIZWUGt-OpCHZvYFtWHxKOvXqGbsouoGB4ee_-x6qW5qGE8Nmpy0sYa8EXnZ3hpF/exec";
     let allData = [];
 
     async function fetchData() {
@@ -170,7 +170,7 @@
         const submitBtn = document.getElementById(`btn-${cardId}`);
         const feedbackText = inputField.value;
 
-        if(!feedbackText) return alert("Please type feedback first.");
+        if (!feedbackText) return alert("Please type feedback first.");
 
         submitBtn.disabled = true;
         submitBtn.innerText = "Sending...";
@@ -178,12 +178,12 @@
         try {
             await fetch(SCRIPT_URL, {
                 method: "POST",
+                headers: { "Content-Type": "text/plain" }, // ✅ Fixed: prevents CORS preflight issue
                 body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
             });
             alert("Feedback Sent! Thank you.");
-            inputField.value = ""; 
+            inputField.value = "";
         } catch (e) {
-            // Because of Google's security, sometimes it fails the response but successfully saves the data.
             alert("Feedback processing complete. Please check the sheet!");
             inputField.value = "";
         } finally {

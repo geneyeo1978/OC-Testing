@@ -178,8 +178,9 @@
         try {
             await fetch(SCRIPT_URL, {
                 method: "POST",
-                headers: { "Content-Type": "text/plain" }, // ✅ Fixed: prevents CORS preflight issue
-                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText }),
+                redirect: "follow" // ✅ Fixed: follow Google's redirect instead of failing
             });
             alert("Feedback Sent! Thank you.");
             inputField.value = "";

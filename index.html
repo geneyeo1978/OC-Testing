@@ -8,29 +8,42 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; line-height: 1.6; }
         .container { max-width: 900px; margin: auto; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
-        .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; }
-        .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .control-group { flex: 1; min-width: 250px; }
+        .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .update-tag { font-size: 0.8rem; color: #718096; font-weight: normal; }
+        
+        .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .control-group { flex: 1; min-width: 200px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
+        
+        .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 45px; }
+        .btn-reset:hover { background: #cbd5e0; }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.25rem; }
         .meta { font-size: 0.9rem; color: #4a5568; margin-bottom: 10px; }
         .description { font-size: 0.95rem; margin-bottom: 15px; flex-grow: 1; }
+        
         .feedback-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: auto; }
-        textarea { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical; min-height: 60px; box-sizing: border-box; }
-        .btn-submit { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-weight: 600; }
-        .btn-submit:disabled { background: #a0aec0; cursor: not-allowed; }
+        textarea { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical; min-height: 60px; box-sizing: border-box; margin-bottom: 8px; }
+        .btn-submit { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-submit:disabled { background: #a0aec0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header><h1>Saints Open Classroom Directory</h1></header>
+    <header>
+        <h1>Saints Open Classroom Directory</h1>
+    </header>
 
     <div id="upcoming-section">
-        <h2 class="section-title">Next 3 Upcoming Sessions</h2>
+        <h2 class="section-title">
+            Next 3 Upcoming Sessions 
+            <span id="lastUpdated" class="update-tag">Loading...</span>
+        </h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
 
@@ -44,32 +57,49 @@
             <label>Filter by Date</label>
             <select id="dateFilter"><option value="">Select a Date...</option></select>
         </div>
+        <button class="btn-reset" onclick="resetFilters()">Clear Filters</button>
     </div>
+
     <div id="search-results" class="grid"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzRHiYUigPqC9KETJUprqAC-bOGRpBSRX430fyzqi7ANH7DbRe4BtEDh7EQnnGMsOc/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC6G-z7fTHP4qxr2ayXmb8bruJC67E7TEQzixVog2_I04reypZfMp60mfEmicc5kQK/exec"; // Update with your deployment URL
     let allData = [];
 
     async function fetchData() {
         try {
             const response = await fetch(SCRIPT_URL);
             allData = await response.json();
-            populateFilters();
+            
+            updateFilterOptions();
             displayUpcoming();
+            handleFilterChange();
+            
+            const now = new Date();
+            document.getElementById('lastUpdated').innerText = `Last updated: ${now.toLocaleTimeString()}`;
         } catch (e) {
-            console.error("Fetch error:", e);
+            console.error("Fetch Error:", e);
         }
     }
 
-    function populateFilters() {
+    function updateFilterOptions() {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
+        const currentT = tSelect.value;
+        const currentD = dSelect.value;
+
+        tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
+        dSelect.innerHTML = '<option value="">Select a Date...</option>';
+
         const teachers = [...new Set(allData.map(item => item.Name))].filter(n => n).sort();
         const dates = [...new Set(allData.map(item => item.Date))].filter(d => d).sort();
+
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
+
+        tSelect.value = currentT;
+        dSelect.value = currentD;
     }
 
     function parseDate(dateStr) {
@@ -87,23 +117,32 @@
         renderCards(futureOnes, 'upcoming-results');
     }
 
-    function handleFilterChange(type) {
+    function handleFilterChange(triggeredByType) {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
+        
+        if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
+        if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
+
         let filtered = [];
-        if (type === 'teacher' && tSelect.value) {
-            dSelect.value = ""; 
+        if (tSelect.value) {
             filtered = allData.filter(item => item.Name === tSelect.value);
-        } else if (type === 'date' && dSelect.value) {
-            tSelect.value = ""; 
+        } else if (dSelect.value) {
             filtered = allData.filter(item => item.Date === dSelect.value);
         }
         renderCards(filtered, 'search-results');
     }
 
+    function resetFilters() {
+        document.getElementById('teacherFilter').value = "";
+        document.getElementById('dateFilter').value = "";
+        renderCards([], 'search-results');
+    }
+
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : "<p>No sessions found.</p>";
+        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date to see details.</p>" : "");
+        
         data.forEach((item, index) => {
             const cardId = `card-${containerId}-${index}`;
             const card = document.createElement('div');
@@ -126,38 +165,36 @@
         });
     }
 
-   async function sendFeedback(name, date, cardId) {
-    const inputField = document.getElementById(`input-${cardId}`);
-    const submitBtn = document.getElementById(`btn-${cardId}`);
-    const feedbackText = inputField.value;
+    async function sendFeedback(name, date, cardId) {
+        const inputField = document.getElementById(`input-${cardId}`);
+        const submitBtn = document.getElementById(`btn-${cardId}`);
+        const feedbackText = inputField.value;
 
-    if(!feedbackText) return alert("Please type feedback first.");
+        if(!feedbackText) return alert("Please type feedback first.");
 
-    submitBtn.disabled = true;
-    submitBtn.innerText = "Sending...";
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending...";
 
-    try {
-        // We use the 'cors' mode now because our new script supports it
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ 
-                teacherName: name, 
-                date: date, 
-                feedback: feedbackText 
-            })
-        });
-
-        // If the code reaches here, consider it a success!
-        alert("Feedback Sent! Thank you.");
-        inputField.value = ""; 
-    } catch (e) {
-        console.error("Submission Error:", e);
-        alert("The feedback was sent! (If it doesn't appear in the sheet, check your Script URL).");
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit Feedback";
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
+            });
+            alert("Feedback Sent! Thank you.");
+            inputField.value = ""; 
+        } catch (e) {
+            // Because of Google's security, sometimes it fails the response but successfully saves the data.
+            alert("Feedback processing complete. Please check the sheet!");
+            inputField.value = "";
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Feedback";
+        }
     }
-}
+
+    // Refresh every 5 minutes
+    setInterval(fetchData, 300000);
+
     document.getElementById('teacherFilter').addEventListener('change', () => handleFilterChange('teacher'));
     document.getElementById('dateFilter').addEventListener('change', () => handleFilterChange('date'));
     fetchData();

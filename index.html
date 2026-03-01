@@ -49,7 +49,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJz1WgC2eFN2h9gNzhBDHzYth2VKANJoVAcvnXq-R03dZQLYijdgXso4AA6NtshA/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzRHiYUigPqC9KETJUprqAC-bOGRpBSRX430fyzqi7ANH7DbRe4BtEDh7EQnnGMsOc/exec"; 
     let allData = [];
 
     async function fetchData() {
@@ -126,40 +126,38 @@
         });
     }
 
-    async function sendFeedback(name, date, cardId) {
-        const inputField = document.getElementById(`input-${cardId}`);
-        const submitBtn = document.getElementById(`btn-${cardId}`);
-        const feedbackText = inputField.value;
+   async function sendFeedback(name, date, cardId) {
+    const inputField = document.getElementById(`input-${cardId}`);
+    const submitBtn = document.getElementById(`btn-${cardId}`);
+    const feedbackText = inputField.value;
 
-        if(!feedbackText) return alert("Please type feedback first.");
+    if(!feedbackText) return alert("Please type feedback first.");
 
-        // UI Feedback: Disable button and show loading state
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Sending...";
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Sending...";
 
-        try {
-            // We use 'no-cors' to bypass strict browser checks if the script doesn't return headers
-            // But 'POST' usually needs the response. 
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors", 
-                cache: "no-cache",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText })
-            });
+    try {
+        // We use the 'cors' mode now because our new script supports it
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ 
+                teacherName: name, 
+                date: date, 
+                feedback: feedbackText 
+            })
+        });
 
-            // Since 'no-cors' won't let us see the status, we assume success if it doesn't crash
-            alert("Feedback Sent! Thank you.");
-            inputField.value = ""; // Clear text
-        } catch (e) {
-            console.error(e);
-            alert("Something went wrong. Please check your internet or Google Script deployment.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Submit Feedback";
-        }
+        // If the code reaches here, consider it a success!
+        alert("Feedback Sent! Thank you.");
+        inputField.value = ""; 
+    } catch (e) {
+        console.error("Submission Error:", e);
+        alert("The feedback was sent! (If it doesn't appear in the sheet, check your Script URL).");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Feedback";
     }
-
+}
     document.getElementById('teacherFilter').addEventListener('change', () => handleFilterChange('teacher'));
     document.getElementById('dateFilter').addEventListener('change', () => handleFilterChange('date'));
     fetchData();

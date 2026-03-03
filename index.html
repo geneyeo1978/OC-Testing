@@ -25,9 +25,9 @@
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
         
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
-        .meta-item strong { min-width: 100px; color: #2d3748; }
+        .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
         
-        .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; }
+        .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
         
         .feedback-link { display: block; text-align: center; background: #2b6cb0; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 10px; transition: background 0.3s; }
         .feedback-link:hover { background: #1e4e8c; }
@@ -65,8 +65,10 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXMwP6Iln0uXRW2exLqJcDAzDf3EVvO4ullBE0O84CUSQVi3YiQG7MaEHMZjYKBr6x/exec"; 
+    // Your specific Google Script URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyupm0DQU7kUAORAtUIxZiLZmZ-N-0KkUudLosVtW__ILlfdf7327QF-T2KsSg2K-oQ/exec"; 
     const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
+    
     let allData = [];
 
     async function fetchData() {
@@ -94,9 +96,8 @@
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
 
-        // Updated to use "Full Name" and "Date of Open Classroom"
-        const teachers = [...new Set(allData.map(item => item["Full Name"]))].filter(n => n).sort();
-        const dates = [...new Set(allData.map(item => item["Date of Open Classroom"]))].filter(d => d).sort(sortDates);
+        const teachers = [...new Set(allData.map(item => String(item["Full Name"])))].filter(n => n && n !== "undefined").sort();
+        const dates = [...new Set(allData.map(item => String(item["Date of Open Classroom"])))].filter(d => d && d !== "undefined").sort(sortDates);
 
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
@@ -105,15 +106,13 @@
         dSelect.value = currentD;
     }
 
-    // Helper to sort dd/MM/yyyy dates
     function sortDates(a, b) {
         return parseDate(a) - parseDate(b);
     }
 
     function parseDate(dateStr) {
-        if (!dateStr) return new Date(0);
+        if (!dateStr || dateStr === "undefined") return new Date(0);
         const parts = dateStr.split('/');
-        // Adjusted for dd/MM/yyyy
         return new Date(parts[2], parts[1] - 1, parts[0]);
     }
 
@@ -135,9 +134,9 @@
 
         let filtered = [];
         if (tSelect.value) {
-            filtered = allData.filter(item => item["Full Name"] === tSelect.value);
+            filtered = allData.filter(item => String(item["Full Name"]) === tSelect.value);
         } else if (dSelect.value) {
-            filtered = allData.filter(item => item["Date of Open Classroom"] === dSelect.value);
+            filtered = allData.filter(item => String(item["Date of Open Classroom"]) === dSelect.value);
         }
         renderCards(filtered, 'search-results');
     }
@@ -155,16 +154,24 @@
         data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
+            
+            // Force values to string to prevent automatic time/date conversion glitches
+            const startTime = String(item["Start Time of Open Classroom"] || 'TBC');
+            const duration = String(item["Duration of Open Classroom"] || '');
+            const venue = String(item["Venue of Open Classroom"] || 'TBC');
+            const synopsis = String(item["Synopsis of Open Classroom"] || 'No description provided.');
+
             card.innerHTML = `
                 <h3>${item["Full Name"]}</h3>
                 <div class="meta-item"><strong>Date:</strong> ${item["Date of Open Classroom"]}</div>
-                <div class="meta-item"><strong>Time:</strong> ${item["Start Time of Open Classroom"]} (${item["Duration of Open Classroom"]})</div>
-                <div class="meta-item"><strong>Venue:</strong> ${item["Venue of Open Classroom"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Time:</strong> ${startTime}</div>
+                <div class="meta-item"><strong>Duration:</strong> ${duration}</div>
+                <div class="meta-item"><strong>Venue:</strong> ${venue}</div>
                 <div class="meta-item"><strong>Subject:</strong> ${item["Subject/Level of Open Classroom"]}</div>
                 
                 <div class="synopsis">
                     <strong>Synopsis:</strong><br>
-                    ${item["Synopsis of Open Classroom"] || 'No description provided.'}
+                    ${synopsis}
                 </div>
 
                 <a href="${FORM_URL}" target="_blank" class="feedback-link">Click to submit feedback</a>

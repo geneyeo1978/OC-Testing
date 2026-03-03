@@ -6,7 +6,7 @@
     <title>Saints Open Classroom Directory</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; line-height: 1.6; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 1000px; margin: auto; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
         .update-tag { font-size: 0.8rem; color: #718096; font-weight: normal; }
@@ -16,20 +16,21 @@
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
         
-        .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 45px; }
+        .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
         .btn-reset:hover { background: #cbd5e0; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
         .card:hover { transform: translateY(-5px); }
-        .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.25rem; }
-        .meta { font-size: 0.9rem; color: #4a5568; margin-bottom: 10px; }
-        .description { font-size: 0.95rem; margin-bottom: 15px; flex-grow: 1; }
+        .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
         
-        .feedback-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: auto; }
-        textarea { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; resize: vertical; min-height: 60px; box-sizing: border-box; margin-bottom: 8px; }
-        .btn-submit { width: 100%; background: #2b6cb0; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-submit:disabled { background: #a0aec0; }
+        .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
+        .meta-item strong { min-width: 100px; color: #2d3748; }
+        
+        .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; }
+        
+        .feedback-link { display: block; text-align: center; background: #2b6cb0; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 10px; transition: background 0.3s; }
+        .feedback-link:hover { background: #1e4e8c; }
     </style>
 </head>
 <body>
@@ -64,7 +65,8 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxsIZWUGt-OpCHZvYFtWHxKOvXqGbsouoGB4ee_-x6qW5qGE8Nmpy0sYa8EXnZ3hpF/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXMwP6Iln0uXRW2exLqJcDAzDf3EVvO4ullBE0O84CUSQVi3YiQG7MaEHMZjYKBr6x/exec"; 
+    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
     let allData = [];
 
     async function fetchData() {
@@ -77,9 +79,9 @@
             handleFilterChange();
             
             const now = new Date();
-            document.getElementById('lastUpdated').innerText = `Last updated: ${now.toLocaleTimeString()}`;
+            document.getElementById('lastUpdated').innerText = `Updated: ${now.toLocaleTimeString()}`;
         } catch (e) {
-            console.error("Fetch Error:", e);
+            console.error("Data Load Error:", e);
         }
     }
 
@@ -92,8 +94,9 @@
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
 
-        const teachers = [...new Set(allData.map(item => item.Name))].filter(n => n).sort();
-        const dates = [...new Set(allData.map(item => item.Date))].filter(d => d).sort();
+        // Updated to use "Full Name" and "Date of Open Classroom"
+        const teachers = [...new Set(allData.map(item => item["Full Name"]))].filter(n => n).sort();
+        const dates = [...new Set(allData.map(item => item["Date of Open Classroom"]))].filter(d => d).sort(sortDates);
 
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
@@ -102,17 +105,23 @@
         dSelect.value = currentD;
     }
 
+    // Helper to sort dd/MM/yyyy dates
+    function sortDates(a, b) {
+        return parseDate(a) - parseDate(b);
+    }
+
     function parseDate(dateStr) {
         if (!dateStr) return new Date(0);
         const parts = dateStr.split('/');
-        return new Date(2000 + parseInt(parts[2]), parts[1] - 1, parts[0]);
+        // Adjusted for dd/MM/yyyy
+        return new Date(parts[2], parts[1] - 1, parts[0]);
     }
 
     function displayUpcoming() {
         const today = new Date(); today.setHours(0,0,0,0);
         const futureOnes = allData
-            .filter(item => parseDate(item.Date) >= today)
-            .sort((a, b) => parseDate(a.Date) - parseDate(b.Date))
+            .filter(item => parseDate(item["Date of Open Classroom"]) >= today)
+            .sort((a, b) => parseDate(a["Date of Open Classroom"]) - parseDate(b["Date of Open Classroom"]))
             .slice(0, 3);
         renderCards(futureOnes, 'upcoming-results');
     }
@@ -126,9 +135,9 @@
 
         let filtered = [];
         if (tSelect.value) {
-            filtered = allData.filter(item => item.Name === tSelect.value);
+            filtered = allData.filter(item => item["Full Name"] === tSelect.value);
         } else if (dSelect.value) {
-            filtered = allData.filter(item => item.Date === dSelect.value);
+            filtered = allData.filter(item => item["Date of Open Classroom"] === dSelect.value);
         }
         renderCards(filtered, 'search-results');
     }
@@ -141,56 +150,27 @@
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date to see details.</p>" : "");
+        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Please select a teacher or date.</p>" : "<p>No upcoming sessions found.</p>");
         
-        data.forEach((item, index) => {
-            const cardId = `card-${containerId}-${index}`;
+        data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <h3>${item.Name}</h3>
-                <div class="meta">
-                    📅 <strong>${item.Date}</strong><br>
-                    ⏰ ${item["Start Time"]} - ${item["End Time"]}<br>
-                    📍 <strong>Location:</strong> ${item.Location || 'TBC'}<br>
-                    👥 TG: ${item.TG}
+                <h3>${item["Full Name"]}</h3>
+                <div class="meta-item"><strong>Date:</strong> ${item["Date of Open Classroom"]}</div>
+                <div class="meta-item"><strong>Time:</strong> ${item["Start Time of Open Classroom"]} (${item["Duration of Open Classroom"]})</div>
+                <div class="meta-item"><strong>Venue:</strong> ${item["Venue of Open Classroom"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Subject:</strong> ${item["Subject/Level of Open Classroom"]}</div>
+                
+                <div class="synopsis">
+                    <strong>Synopsis:</strong><br>
+                    ${item["Synopsis of Open Classroom"] || 'No description provided.'}
                 </div>
-                <p class="description">${item["Brief description"]}</p>
-                <div class="feedback-box">
-                    <textarea id="input-${cardId}" placeholder="Enter feedback here..."></textarea>
-                    <button id="btn-${cardId}" class="btn-submit" onclick="sendFeedback('${item.Name}', '${item.Date}', '${cardId}')">Submit Feedback</button>
-                </div>
+
+                <a href="${FORM_URL}" target="_blank" class="feedback-link">Click to submit feedback</a>
             `;
             container.appendChild(card);
         });
-    }
-
-    async function sendFeedback(name, date, cardId) {
-        const inputField = document.getElementById(`input-${cardId}`);
-        const submitBtn = document.getElementById(`btn-${cardId}`);
-        const feedbackText = inputField.value;
-
-        if (!feedbackText) return alert("Please type feedback first.");
-
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Sending...";
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ teacherName: name, date: date, feedback: feedbackText }),
-                redirect: "follow" // ✅ Fixed: follow Google's redirect instead of failing
-            });
-            alert("Feedback Sent! Thank you.");
-            inputField.value = "";
-        } catch (e) {
-            alert("Feedback processing complete. Please check the sheet!");
-            inputField.value = "";
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Submit Feedback";
-        }
     }
 
     // Refresh every 5 minutes
@@ -198,6 +178,7 @@
 
     document.getElementById('teacherFilter').addEventListener('change', () => handleFilterChange('teacher'));
     document.getElementById('dateFilter').addEventListener('change', () => handleFilterChange('date'));
+    
     fetchData();
 </script>
 </body>

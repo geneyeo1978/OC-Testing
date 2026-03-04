@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saints Open Classroom Directory</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; line-height: 1.6; }
-        .container { max-width: 1000px; margin: auto; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 0; margin: 0; color: #1a1a1a; line-height: 1.6; }
+        .signup-banner { background: #2c5282; color: white; text-align: center; padding: 12px 20px; font-weight: 600; border-bottom: 3px solid #ebf8ff; }
+        .signup-banner a { color: #fff; text-decoration: underline; margin-left: 5px; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
         .update-tag { font-size: 0.8rem; color: #718096; font-weight: normal; }
@@ -26,12 +28,18 @@
 </head>
 <body>
 
+<div class="signup-banner">
+    ✨ I want to open my classroom! 
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
+</div>
+
 <div class="container">
     <header><h1>Saints Open Classroom Directory</h1></header>
     <div id="upcoming-section">
         <h2 class="section-title">Next 3 Upcoming Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
+
     <h2 class="section-title">Search Directory</h2>
     <div class="controls">
         <div class="control-group">
@@ -48,7 +56,8 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyupm0DQU7kUAORAtUIxZiLZmZ-N-0KkUudLosVtW__ILlfdf7327QF-T2KsSg2K-oQ/exec"; 
+    // PASTE YOUR NEW DEPLOYMENT URL HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgMJRS7IWZvFOJa4BQlTRW6P902JKEi9X_DXLOLlmmbbzzg5ngan4u8gJYWXGKLHGa/exec"; 
     const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
     
     let allData = [];
@@ -57,6 +66,7 @@
         try {
             const response = await fetch(SCRIPT_URL);
             allData = await response.json();
+            if(allData.error) { alert(allData.error); return; }
             updateFilterOptions();
             displayUpcoming();
             handleFilterChange();
@@ -73,8 +83,8 @@
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
 
-        const teachers = [...new Set(allData.map(item => String(item["Full Name"])))].filter(n => n && n !== "undefined").sort();
-        const dates = [...new Set(allData.map(item => String(item["Date of Open Classroom"])))].filter(d => d && d !== "undefined").sort(sortDates);
+        const teachers = [...new Set(allData.map(item => String(item["Name"])))].filter(n => n && n !== "undefined").sort();
+        const dates = [...new Set(allData.map(item => String(item["Date"])))].filter(d => d && d !== "undefined").sort(sortDates);
 
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
@@ -94,8 +104,8 @@
     function displayUpcoming() {
         const today = new Date(); today.setHours(0,0,0,0);
         const futureOnes = allData
-            .filter(item => parseDate(item["Date of Open Classroom"]) >= today)
-            .sort((a, b) => parseDate(a["Date of Open Classroom"]) - parseDate(b["Date of Open Classroom"]))
+            .filter(item => parseDate(item["Date"]) >= today)
+            .sort((a, b) => parseDate(a["Date"]) - parseDate(b["Date"]))
             .slice(0, 3);
         renderCards(futureOnes, 'upcoming-results');
     }
@@ -105,7 +115,7 @@
         const dSelect = document.getElementById('dateFilter');
         if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
         if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
-        let filtered = (tSelect.value) ? allData.filter(item => String(item["Full Name"]) === tSelect.value) : (dSelect.value ? allData.filter(item => String(item["Date of Open Classroom"]) === dSelect.value) : []);
+        let filtered = (tSelect.value) ? allData.filter(item => String(item["Name"]) === tSelect.value) : (dSelect.value ? allData.filter(item => String(item["Date"]) === dSelect.value) : []);
         renderCards(filtered, 'search-results');
     }
 
@@ -117,20 +127,19 @@
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date.</p>" : "<p>No upcoming sessions.</p>");
+        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Please select a teacher or date.</p>" : "<p>No upcoming sessions found.</p>");
         
         data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
-            
             card.innerHTML = `
-                <h3>${item["Full Name"] || 'N/A'}</h3>
-                <div class="meta-item"><strong>Date:</strong> ${item["Date of Open Classroom"] || 'TBC'}</div>
-                <div class="meta-item"><strong>Start Time:</strong> ${item["Start Time of Open Classroom"] || 'Check Sheet'}</div>
-                <div class="meta-item"><strong>Duration:</strong> ${item["Duration of Open Classroom"] || ''}</div>
-                <div class="meta-item"><strong>Venue:</strong> ${item["Venue of Open Classroom"] || 'TBC'}</div>
-                <div class="meta-item"><strong>Subject:</strong> ${item["Subject/Level of Open Classroom"] || 'N/A'}</div>
-                <div class="synopsis"><strong>Synopsis:</strong><br>${item["Synopsis of Open Classroom"] || 'No description.'}</div>
+                <h3>${item["Name"] || 'N/A'}</h3>
+                <div class="meta-item"><strong>Date:</strong> ${item["Date"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Start Time:</strong> ${item["Start Time"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Duration:</strong> ${item["Duration"] || ''}</div>
+                <div class="meta-item"><strong>TG:</strong> ${item["TG"] || 'N/A'}</div>
+                <div class="meta-item"><strong>Attendees:</strong> ${item["Attendees"] || '0'}</div>
+                <div class="synopsis"><strong>Description:</strong><br>${item["Brief description"] || 'No description.'}</div>
                 <a href="${FORM_URL}" target="_blank" class="feedback-link">Click to submit feedback</a>
             `;
             container.appendChild(card);

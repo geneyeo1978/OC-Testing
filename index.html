@@ -19,6 +19,7 @@
         .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
@@ -35,12 +36,13 @@
 
 <div class="container">
     <header><h1>Saints Open Classroom Directory</h1></header>
+    
     <div id="upcoming-section">
-        <h2 class="section-title">Next 3 Upcoming Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
+        <h2 class="section-title">Next 3 Featured Sessions (from Sheet1) <span id="lastUpdated" class="update-tag">Loading...</span></h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
 
-    <h2 class="section-title">Search Directory</h2>
+    <h2 class="section-title">Directory Search (from Master Data Sheet)</h2>
     <div class="controls">
         <div class="control-group">
             <label>Filter by Teacher</label>
@@ -57,16 +59,20 @@
 
 <script>
     // PASTE YOUR NEW DEPLOYMENT URL HERE
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgMJRS7IWZvFOJa4BQlTRW6P902JKEi9X_DXLOLlmmbbzzg5ngan4u8gJYWXGKLHGa/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYTwx7OHXZpl_iHy1eY3q6if6DaUqfk9XJevD0G22Wrn7C4ijfKfMz0rp1MLTL2dmx/exec"; 
     const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
     
-    let allData = [];
+    let upcomingData = [];
+    let masterData = [];
 
     async function fetchData() {
         try {
             const response = await fetch(SCRIPT_URL);
-            allData = await response.json();
-            if(allData.error) { alert(allData.error); return; }
+            const data = await response.json();
+            
+            upcomingData = data.upcoming;
+            masterData = data.directory;
+
             updateFilterOptions();
             displayUpcoming();
             handleFilterChange();
@@ -83,8 +89,8 @@
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
 
-        const teachers = [...new Set(allData.map(item => String(item["Name"])))].filter(n => n && n !== "undefined").sort();
-        const dates = [...new Set(allData.map(item => String(item["Date"])))].filter(d => d && d !== "undefined").sort(sortDates);
+        const teachers = [...new Set(masterData.map(item => String(item["Name"])))].filter(n => n && n !== "undefined").sort();
+        const dates = [...new Set(masterData.map(item => String(item["Date"])))].filter(d => d && d !== "undefined").sort(sortDates);
 
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
@@ -102,12 +108,9 @@
     }
 
     function displayUpcoming() {
-        const today = new Date(); today.setHours(0,0,0,0);
-        const futureOnes = allData
-            .filter(item => parseDate(item["Date"]) >= today)
-            .sort((a, b) => parseDate(a["Date"]) - parseDate(b["Date"]))
-            .slice(0, 3);
-        renderCards(futureOnes, 'upcoming-results');
+        // Displays top 3 rows exactly as they appear in "Sheet1"
+        const topThree = upcomingData.slice(0, 3);
+        renderCards(topThree, 'upcoming-results');
     }
 
     function handleFilterChange(triggeredByType) {
@@ -115,7 +118,8 @@
         const dSelect = document.getElementById('dateFilter');
         if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
         if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
-        let filtered = (tSelect.value) ? allData.filter(item => String(item["Name"]) === tSelect.value) : (dSelect.value ? allData.filter(item => String(item["Date"]) === dSelect.value) : []);
+        
+        let filtered = (tSelect.value) ? masterData.filter(item => String(item["Name"]) === tSelect.value) : (dSelect.value ? masterData.filter(item => String(item["Date"]) === dSelect.value) : []);
         renderCards(filtered, 'search-results');
     }
 
@@ -127,7 +131,7 @@
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Please select a teacher or date.</p>" : "<p>No upcoming sessions found.</p>");
+        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date.</p>" : "<p>Featured list is empty.</p>");
         
         data.forEach((item) => {
             const card = document.createElement('div');

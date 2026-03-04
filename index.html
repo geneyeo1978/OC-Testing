@@ -5,60 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saints Open Classroom Directory</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 0; margin: 0; color: #1a1a1a; line-height: 1.6; }
-        
-        /* New Sign-up Banner */
-        .signup-banner { background: #2c5282; color: white; text-align: center; padding: 12px 20px; font-weight: 600; border-bottom: 3px solid #ebf8ff; }
-        .signup-banner a { color: #fff; text-decoration: underline; margin-left: 5px; transition: color 0.2s; }
-        .signup-banner a:hover { color: #bee3f8; }
-
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; line-height: 1.6; }
+        .container { max-width: 1000px; margin: auto; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
         .update-tag { font-size: 0.8rem; color: #718096; font-weight: normal; }
-        
         .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
         .control-group { flex: 1; min-width: 200px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
-        
         .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
-        .btn-reset:hover { background: #cbd5e0; }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
-        
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
-        
         .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
-        
-        .feedback-link { display: block; text-align: center; background: #2b6cb0; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 10px; transition: background 0.3s; }
-        .feedback-link:hover { background: #1e4e8c; }
+        .feedback-link { display: block; text-align: center; background: #2b6cb0; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="signup-banner">
-    ✨ I want to open my classroom! 
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
-</div>
-
 <div class="container">
-    <header>
-        <h1>Saints Open Classroom Directory</h1>
-    </header>
-
+    <header><h1>Saints Open Classroom Directory</h1></header>
     <div id="upcoming-section">
-        <h2 class="section-title">
-            Next 3 Upcoming Sessions 
-            <span id="lastUpdated" class="update-tag">Loading...</span>
-        </h2>
+        <h2 class="section-title">Next 3 Upcoming Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
-
     <h2 class="section-title">Search Directory</h2>
     <div class="controls">
         <div class="control-group">
@@ -71,12 +44,11 @@
         </div>
         <button class="btn-reset" onclick="resetFilters()">Clear Filters</button>
     </div>
-
     <div id="search-results" class="grid"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVrczK53zcBYLbZUy93VSEtKbVVoP9n1uQLZF138ThUz6olbTpgPLDSTZoFUrrBZDT/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyupm0DQU7kUAORAtUIxZiLZmZ-N-0KkUudLosVtW__ILlfdf7327QF-T2KsSg2K-oQ/exec"; 
     const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
     
     let allData = [];
@@ -85,16 +57,11 @@
         try {
             const response = await fetch(SCRIPT_URL);
             allData = await response.json();
-            
             updateFilterOptions();
             displayUpcoming();
             handleFilterChange();
-            
-            const now = new Date();
-            document.getElementById('lastUpdated').innerText = `Updated: ${now.toLocaleTimeString()}`;
-        } catch (e) {
-            console.error("Data Load Error:", e);
-        }
+            document.getElementById('lastUpdated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
+        } catch (e) { console.error("Data Load Error:", e); }
     }
 
     function updateFilterOptions() {
@@ -116,9 +83,7 @@
         dSelect.value = currentD;
     }
 
-    function sortDates(a, b) {
-        return parseDate(a) - parseDate(b);
-    }
+    function sortDates(a, b) { return parseDate(a) - parseDate(b); }
 
     function parseDate(dateStr) {
         if (!dateStr || dateStr === "undefined") return new Date(0);
@@ -138,16 +103,9 @@
     function handleFilterChange(triggeredByType) {
         const tSelect = document.getElementById('teacherFilter');
         const dSelect = document.getElementById('dateFilter');
-        
         if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
         if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
-
-        let filtered = [];
-        if (tSelect.value) {
-            filtered = allData.filter(item => String(item["Full Name"]) === tSelect.value);
-        } else if (dSelect.value) {
-            filtered = allData.filter(item => String(item["Date of Open Classroom"]) === dSelect.value);
-        }
+        let filtered = (tSelect.value) ? allData.filter(item => String(item["Full Name"]) === tSelect.value) : (dSelect.value ? allData.filter(item => String(item["Date of Open Classroom"]) === dSelect.value) : []);
         renderCards(filtered, 'search-results');
     }
 
@@ -159,7 +117,7 @@
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Please select a teacher or date.</p>" : "<p>No upcoming sessions found.</p>");
+        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date.</p>" : "<p>No upcoming sessions.</p>");
         
         data.forEach((item) => {
             const card = document.createElement('div');
@@ -172,12 +130,7 @@
                 <div class="meta-item"><strong>Duration:</strong> ${item["Duration of Open Classroom"] || ''}</div>
                 <div class="meta-item"><strong>Venue:</strong> ${item["Venue of Open Classroom"] || 'TBC'}</div>
                 <div class="meta-item"><strong>Subject:</strong> ${item["Subject/Level of Open Classroom"] || 'N/A'}</div>
-                
-                <div class="synopsis">
-                    <strong>Synopsis:</strong><br>
-                    ${item["Synopsis of Open Classroom"] || 'No description provided.'}
-                </div>
-
+                <div class="synopsis"><strong>Synopsis:</strong><br>${item["Synopsis of Open Classroom"] || 'No description.'}</div>
                 <a href="${FORM_URL}" target="_blank" class="feedback-link">Click to submit feedback</a>
             `;
             container.appendChild(card);

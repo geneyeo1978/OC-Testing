@@ -18,13 +18,21 @@
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
         .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
         .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
         .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
         .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
-        .feedback-link { display: block; text-align: center; background: #2b6cb0; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 10px; }
+        
+        /* New Link Button Container */
+        .card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .action-link { display: block; text-align: center; padding: 10px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.3s; }
+        .reg-btn { background: #2b6cb0; color: white; }
+        .reg-btn:hover { background: #1e4e8c; }
+        .fb-btn { background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; }
+        .fb-btn:hover { background: #e2e8f0; }
     </style>
 </head>
 <body>
@@ -42,7 +50,7 @@
         <div id="upcoming-results" class="grid"></div>
     </div>
 
-    <h2 class="section-title">Directory Search </h2>
+    <h2 class="section-title">Directory Search</h2>
     <div class="controls">
         <div class="control-group">
             <label>Filter by Teacher</label>
@@ -58,9 +66,8 @@
 </div>
 
 <script>
-    // PASTE YOUR NEW DEPLOYMENT URL HERE
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYTwx7OHXZpl_iHy1eY3q6if6DaUqfk9XJevD0G22Wrn7C4ijfKfMz0rp1MLTL2dmx/exec"; 
-    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeZJHI8PFcQcWtYfO1mO8aFxd5iyZ3-i9e9eEtr2CVsLbMkA/viewform?usp=sf_link";
+    // RETAIN YOUR SCRIPT URL FROM PREVIOUS STEP
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyupm0DQU7kUAORAtUIxZiLZmZ-N-0KkUudLosVtW__ILlfdf7327QF-T2KsSg2K-oQ/exec"; 
     
     let upcomingData = [];
     let masterData = [];
@@ -108,7 +115,6 @@
     }
 
     function displayUpcoming() {
-        // Displays top 3 rows exactly as they appear in "Sheet1"
         const topThree = upcomingData.slice(0, 3);
         renderCards(topThree, 'upcoming-results');
     }
@@ -136,6 +142,11 @@
         data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
+            
+            // Check for links, provide fallbacks if column is empty
+            const registerUrl = item["register link"] || "#";
+            const feedbackUrl = item["feedback link"] || "#";
+
             card.innerHTML = `
                 <h3>${item["Name"] || 'N/A'}</h3>
                 <div class="meta-item"><strong>Date:</strong> ${item["Date"] || 'TBC'}</div>
@@ -144,7 +155,11 @@
                 <div class="meta-item"><strong>TG:</strong> ${item["TG"] || 'N/A'}</div>
                 <div class="meta-item"><strong>Attendees:</strong> ${item["Attendees"] || '0'}</div>
                 <div class="synopsis"><strong>Description:</strong><br>${item["Brief description"] || 'No description.'}</div>
-                <a href="${FORM_URL}" target="_blank" class="feedback-link">Click to submit feedback</a>
+                
+                <div class="card-actions">
+                    <a href="${registerUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>
+                    <a href="${feedbackUrl}" target="_blank" class="action-link fb-btn">Send Feedback</a>
+                </div>
             `;
             container.appendChild(card);
         });

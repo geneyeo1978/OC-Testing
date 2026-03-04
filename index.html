@@ -18,15 +18,12 @@
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
         .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
         .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
         .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0 0 10px 0; color: #2b6cb0; font-size: 1.3rem; }
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
         .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
-        
-        /* New Link Button Container */
         .card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .action-link { display: block; text-align: center; padding: 10px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.3s; }
         .reg-btn { background: #2b6cb0; color: white; }
@@ -46,7 +43,7 @@
     <header><h1>Saints Open Classroom Directory</h1></header>
     
     <div id="upcoming-section">
-        <h2 class="section-title">Next 3 Featured Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
+        <h2 class="section-title">Next 3 Upcoming Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
 
@@ -66,8 +63,8 @@
 </div>
 
 <script>
-    // RETAIN YOUR SCRIPT URL FROM PREVIOUS STEP
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7r9gzU1702bxUKIMXF5leJMJvaTtP0p_JMwJaVHJwzxhJu2A2-9oDO1SqqeeXxZ5Y/exec"; 
+    // PASTE YOUR NEW DEPLOYMENT URL HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlbRM6t__bd0YcFwFIr4yYYw6db87i6Ta9zYZcd_HwGNMj3m2t6P79PY3fTcQXy8_A/exec"; 
     
     let upcomingData = [];
     let masterData = [];
@@ -77,14 +74,17 @@
             const response = await fetch(SCRIPT_URL);
             const data = await response.json();
             
-            upcomingData = data.upcoming;
-            masterData = data.directory;
+            upcomingData = data.upcoming || [];
+            masterData = data.directory || [];
 
             updateFilterOptions();
             displayUpcoming();
             handleFilterChange();
             document.getElementById('lastUpdated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
-        } catch (e) { console.error("Data Load Error:", e); }
+        } catch (e) { 
+            console.error("Data Load Error:", e);
+            document.getElementById('upcoming-results').innerHTML = "<p style='color:red;'>Failed to load data. Please check Script URL and Sheet Tab Names.</p>";
+        }
     }
 
     function updateFilterOptions() {
@@ -96,8 +96,8 @@
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
 
-        const teachers = [...new Set(masterData.map(item => String(item["Name"])))].filter(n => n && n !== "undefined").sort();
-        const dates = [...new Set(masterData.map(item => String(item["Date"])))].filter(d => d && d !== "undefined").sort(sortDates);
+        const teachers = [...new Set(masterData.map(item => String(item["name"])))].filter(n => n && n !== "undefined").sort();
+        const dates = [...new Set(masterData.map(item => String(item["date"])))].filter(d => d && d !== "undefined").sort(sortDates);
 
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
@@ -115,6 +115,7 @@
     }
 
     function displayUpcoming() {
+        // Pulls next 3 rows from Sheet1 data
         const topThree = upcomingData.slice(0, 3);
         renderCards(topThree, 'upcoming-results');
     }
@@ -125,7 +126,7 @@
         if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
         if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
         
-        let filtered = (tSelect.value) ? masterData.filter(item => String(item["Name"]) === tSelect.value) : (dSelect.value ? masterData.filter(item => String(item["Date"]) === dSelect.value) : []);
+        let filtered = (tSelect.value) ? masterData.filter(item => String(item["name"]) === tSelect.value) : (dSelect.value ? masterData.filter(item => String(item["date"]) === dSelect.value) : []);
         renderCards(filtered, 'search-results');
     }
 
@@ -137,28 +138,32 @@
 
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.length ? "" : (containerId === 'search-results' ? "<p>Select a teacher or date.</p>" : "<p>Featured list is empty.</p>");
+        if (!data || data.length === 0) {
+            container.innerHTML = containerId === 'search-results' ? "<p>Select a teacher or date to see directory details.</p>" : "<p>No sessions found in Sheet1.</p>";
+            return;
+        }
         
+        container.innerHTML = "";
         data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
             
-            // Check for links, provide fallbacks if column is empty
-            const registerUrl = item["register link"] || "#";
-            const feedbackUrl = item["feedback link"] || "#";
+            // Note: Keys are now LOWERCASE to match the script
+            const regUrl = item["register link"];
+            const fbUrl = item["feedback link"];
 
             card.innerHTML = `
-                <h3>${item["Name"] || 'N/A'}</h3>
-                <div class="meta-item"><strong>Date:</strong> ${item["Date"] || 'TBC'}</div>
-                <div class="meta-item"><strong>Start Time:</strong> ${item["Start Time"] || 'TBC'}</div>
-                <div class="meta-item"><strong>Duration:</strong> ${item["Duration"] || ''}</div>
-                <div class="meta-item"><strong>TG:</strong> ${item["TG"] || 'N/A'}</div>
-                <div class="meta-item"><strong>Attendees:</strong> ${item["Attendees"] || '0'}</div>
-                <div class="synopsis"><strong>Description:</strong><br>${item["Brief description"] || 'No description.'}</div>
+                <h3>${item["name"] || 'N/A'}</h3>
+                <div class="meta-item"><strong>Date:</strong> ${item["date"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Start Time:</strong> ${item["start time"] || 'TBC'}</div>
+                <div class="meta-item"><strong>Duration:</strong> ${item["duration"] || ''}</div>
+                <div class="meta-item"><strong>TG:</strong> ${item["tg"] || 'N/A'}</div>
+                <div class="meta-item"><strong>Attendees:</strong> ${item["attendees"] || '0'}</div>
+                <div class="synopsis"><strong>Description:</strong><br>${item["brief description"] || 'No description.'}</div>
                 
                 <div class="card-actions">
-                    <a href="${registerUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>
-                    <a href="${feedbackUrl}" target="_blank" class="action-link fb-btn">Send Feedback</a>
+                    ${regUrl ? `<a href="${regUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>` : ''}
+                    ${fbUrl ? `<a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Feedback</a>` : ''}
                 </div>
             `;
             container.appendChild(card);

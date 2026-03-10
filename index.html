@@ -16,7 +16,13 @@
         .control-group { flex: 1; min-width: 200px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
-        .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; }
+        
+        /* BUTTON STYLES */
+        .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; transition: background 0.2s; }
+        .btn-reset:hover { background: #cbd5e0; }
+        .btn-show-all { background: #2b6cb0; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; transition: background 0.2s; }
+        .btn-show-all:hover { background: #1e4e8c; }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid #2b6cb0; display: flex; flex-direction: column; transition: transform 0.2s; }
         .card:hover { transform: translateY(-5px); }
@@ -31,7 +37,6 @@
         .fb-btn { background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; }
         .fb-btn:hover { background: #e2e8f0; }
 
-        /* NEW STYLE FOR HINT */
         .affirmation-hint { 
             font-family: 'Arial Narrow', Arial, sans-serif; 
             font-size: 0.75rem; 
@@ -67,7 +72,8 @@
             <label>Filter by Date</label>
             <select id="dateFilter"><option value="">Select a Date...</option></select>
         </div>
-        <button class="btn-reset" onclick="resetFilters()">Clear Filters</button>
+        <button class="btn-show-all" onclick="showAllSessions()">Show All Sessions</button>
+        <button class="btn-reset" onclick="resetFilters()">Clear</button>
     </div>
     <div id="search-results" class="grid"></div>
 </div>
@@ -130,6 +136,13 @@
         renderCards(filtered, 'search-results');
     }
 
+    // NEW FUNCTION TO SHOW EVERYTHING
+    function showAllSessions() {
+        document.getElementById('teacherFilter').value = "";
+        document.getElementById('dateFilter').value = "";
+        renderCards(masterData, 'search-results');
+    }
+
     function resetFilters() {
         document.getElementById('teacherFilter').value = "";
         document.getElementById('dateFilter').value = "";
@@ -163,7 +176,7 @@
                     ${regUrl ? `<a href="${regUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>` : ''}
                     ${fbUrl ? `
                         <a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Affirmation</a>
-                        <div class="affirmation-hint">Your affirmation will go directly to the teacher who opened the classroom.</div>
+                        <div class="affirmation-hint">Your affirmation will go directly to the teacher.</div>
                     ` : ''}
                 </div>
             `;

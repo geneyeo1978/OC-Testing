@@ -6,10 +6,29 @@
     <title>Saints Open Classroom Directory</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 0; margin: 0; color: #1a1a1a; line-height: 1.6; }
+        
+        /* LOGO STYLE */
+        .school-logo {
+            position: absolute;
+            top: 60px; /* Placed below the signup banner */
+            left: 20px;
+            height: 60px; /* Adjust height as needed */
+            width: auto;
+            z-index: 10;
+        }
+
         .signup-banner { background: #2c5282; color: white; text-align: center; padding: 12px 20px; font-weight: 600; border-bottom: 3px solid #ebf8ff; }
         .signup-banner a { color: #fff; text-decoration: underline; margin-left: 5px; }
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        
+        .container { max-width: 1000px; margin: auto; padding: 20px; position: relative; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
+        
+        /* ADJUST HEADER FOR MOBILE SO LOGO DOESN'T OVERLAP TITLE */
+        @media (max-width: 768px) {
+            .school-logo { position: static; display: block; margin: 10px auto; height: 50px; }
+            header { margin-top: 10px; }
+        }
+
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
         .update-tag { font-size: 0.8rem; color: #718096; font-weight: normal; }
         .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
@@ -17,7 +36,6 @@
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; background-color: #fff; }
         
-        /* BUTTON STYLES */
         .btn-reset { background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; transition: background 0.2s; }
         .btn-reset:hover { background: #cbd5e0; }
         .btn-show-all { background: #2b6cb0; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 47px; transition: background 0.2s; }
@@ -53,6 +71,8 @@
     ✨ I want to open my classroom! 
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
 </div>
+
+<img src="logo.png" alt="School Logo" class="school-logo">
 
 <div class="container">
     <header><h1>Saints Open Classroom Directory</h1></header>
@@ -136,7 +156,6 @@
         renderCards(filtered, 'search-results');
     }
 
-    // NEW FUNCTION TO SHOW EVERYTHING
     function showAllSessions() {
         document.getElementById('teacherFilter').value = "";
         document.getElementById('dateFilter').value = "";

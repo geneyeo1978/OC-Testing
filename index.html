@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -30,6 +30,16 @@ f<!DOCTYPE html>
         .reg-btn:hover { background: #1e4e8c; }
         .fb-btn { background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; }
         .fb-btn:hover { background: #e2e8f0; }
+
+        /* NEW STYLE FOR HINT */
+        .affirmation-hint { 
+            font-family: 'Arial Narrow', Arial, sans-serif; 
+            font-size: 0.75rem; 
+            color: #718096; 
+            text-align: center; 
+            margin-top: -5px; 
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -63,7 +73,6 @@ f<!DOCTYPE html>
 </div>
 
 <script>
-    // PASTE YOUR NEW DEPLOYMENT URL HERE
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlbRM6t__bd0YcFwFIr4yYYw6db87i6Ta9zYZcd_HwGNMj3m2t6P79PY3fTcQXy8_A/exec"; 
     
     let upcomingData = [];
@@ -73,17 +82,15 @@ f<!DOCTYPE html>
         try {
             const response = await fetch(SCRIPT_URL);
             const data = await response.json();
-            
             upcomingData = data.upcoming || [];
             masterData = data.directory || [];
-
             updateFilterOptions();
             displayUpcoming();
             handleFilterChange();
             document.getElementById('lastUpdated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
         } catch (e) { 
             console.error("Data Load Error:", e);
-            document.getElementById('upcoming-results').innerHTML = "<p style='color:red;'>Failed to load data. Please check Script URL and Sheet Tab Names.</p>";
+            document.getElementById('upcoming-results').innerHTML = "<p style='color:red;'>Failed to load data.</p>";
         }
     }
 
@@ -92,16 +99,12 @@ f<!DOCTYPE html>
         const dSelect = document.getElementById('dateFilter');
         const currentT = tSelect.value;
         const currentD = dSelect.value;
-
         tSelect.innerHTML = '<option value="">Select a Teacher...</option>';
         dSelect.innerHTML = '<option value="">Select a Date...</option>';
-
         const teachers = [...new Set(masterData.map(item => String(item["name"])))].filter(n => n && n !== "undefined").sort();
         const dates = [...new Set(masterData.map(item => String(item["date"])))].filter(d => d && d !== "undefined").sort(sortDates);
-
         teachers.forEach(t => tSelect.innerHTML += `<option value="${t}">${t}</option>`);
         dates.forEach(d => dSelect.innerHTML += `<option value="${d}">${d}</option>`);
-
         tSelect.value = currentT;
         dSelect.value = currentD;
     }
@@ -115,9 +118,7 @@ f<!DOCTYPE html>
     }
 
     function displayUpcoming() {
-        // Pulls next 3 rows from Sheet1 data
-        const topThree = upcomingData.slice(0, 3);
-        renderCards(topThree, 'upcoming-results');
+        renderCards(upcomingData.slice(0, 3), 'upcoming-results');
     }
 
     function handleFilterChange(triggeredByType) {
@@ -125,7 +126,6 @@ f<!DOCTYPE html>
         const dSelect = document.getElementById('dateFilter');
         if (triggeredByType === 'teacher' && tSelect.value) dSelect.value = "";
         if (triggeredByType === 'date' && dSelect.value) tSelect.value = "";
-        
         let filtered = (tSelect.value) ? masterData.filter(item => String(item["name"]) === tSelect.value) : (dSelect.value ? masterData.filter(item => String(item["date"]) === dSelect.value) : []);
         renderCards(filtered, 'search-results');
     }
@@ -139,7 +139,7 @@ f<!DOCTYPE html>
     function renderCards(data, containerId) {
         const container = document.getElementById(containerId);
         if (!data || data.length === 0) {
-            container.innerHTML = containerId === 'search-results' ? "<p>Select a teacher or date to see directory details.</p>" : "<p>No sessions found in Sheet1.</p>";
+            container.innerHTML = containerId === 'search-results' ? "<p>Select a teacher or date to see directory details.</p>" : "<p>No sessions found.</p>";
             return;
         }
         
@@ -147,8 +147,6 @@ f<!DOCTYPE html>
         data.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
-            
-            // Note: Keys are now LOWERCASE to match the script
             const regUrl = item["register link"];
             const fbUrl = item["feedback link"];
 
@@ -163,7 +161,10 @@ f<!DOCTYPE html>
                 
                 <div class="card-actions">
                     ${regUrl ? `<a href="${regUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>` : ''}
-                    ${fbUrl ? `<a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Affirmation</a>` : ''}
+                    ${fbUrl ? `
+                        <a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Affirmation</a>
+                        <div class="affirmation-hint">Your affirmation will go directly to the teacher.</div>
+                    ` : ''}
                 </div>
             `;
             container.appendChild(card);

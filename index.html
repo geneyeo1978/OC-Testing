@@ -7,26 +7,38 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 0; margin: 0; color: #1a1a1a; line-height: 1.6; }
         
-        /* LOGO STYLE */
-        .school-logo {
-            position: absolute;
-            top: 60px; /* Placed below the signup banner */
-            left: 20px;
-            height: 60px; /* Adjust height as needed */
-            width: auto;
-            z-index: 10;
+        /* SIGNUP BANNER & LOGO STYLE */
+        .signup-banner { 
+            background: #2c5282; 
+            color: white; 
+            border-bottom: 3px solid #ebf8ff; 
+            display: flex; /* Flexbox aligns logo and text on one line */
+            align-items: center; 
+            justify-content: center; /* Center everything */
+            padding: 8px 20px; /* Reduced vertical padding */
+            flex-wrap: wrap; /* Wraps on mobile */
+            gap: 15px; /* Space between logo and text */
         }
 
-        .signup-banner { background: #2c5282; color: white; text-align: center; padding: 12px 20px; font-weight: 600; border-bottom: 3px solid #ebf8ff; }
+        .school-logo {
+            height: 40px; /* Set logo height to fit banner */
+            width: auto;
+        }
+
+        .banner-text {
+            font-weight: 600;
+        }
+
         .signup-banner a { color: #fff; text-decoration: underline; margin-left: 5px; }
         
+        /* CONTAINER & OTHER STYLES */
         .container { max-width: 1000px; margin: auto; padding: 20px; position: relative; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         
-        /* ADJUST HEADER FOR MOBILE SO LOGO DOESN'T OVERLAP TITLE */
+        /* MOBILE ADJUSTMENT FOR BANNER */
         @media (max-width: 768px) {
-            .school-logo { position: static; display: block; margin: 10px auto; height: 50px; }
-            header { margin-top: 10px; }
+            .signup-banner { flex-direction: column; text-align: center; padding: 12px 20px; gap: 8px; }
+            .school-logo { height: 35px; } /* Slightly smaller on mobile */
         }
 
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -68,11 +80,12 @@
 <body>
 
 <div class="signup-banner">
-    ✨ I want to open my classroom! 
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
+    <img src="logo.png" alt="School Logo" class="school-logo">
+    <div class="banner-text">
+        ✨ I want to open my classroom! 
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
+    </div>
 </div>
-
-<img src="logo.png" alt="School Logo" class="school-logo">
 
 <div class="container">
     <header><h1>Saints Open Classroom Directory</h1></header>

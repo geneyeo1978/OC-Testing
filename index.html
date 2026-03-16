@@ -60,7 +60,15 @@
         .meta-item { font-size: 0.9rem; color: #4a5568; margin-bottom: 6px; display: flex; align-items: flex-start; }
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
         .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
-        .card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        
+        /* NEW CoT STYLES */
+        .cot-section { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .cot-title { font-weight: bold; font-size: 0.85rem; color: #2c5282; margin-bottom: 5px; }
+        .cot-table { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.4; color: #4a5568; }
+        .cot-table td { padding: 4px 0; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        .cot-table tr:last-child td { border-bottom: none; }
+
+        .card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .action-link { display: block; text-align: center; padding: 10px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.3s; }
         .reg-btn { background: #2b6cb0; color: white; }
         .reg-btn:hover { background: #1e4e8c; }
@@ -195,6 +203,19 @@
             const regUrl = item["register link"];
             const fbUrl = item["feedback link"];
 
+            // Logic for Cultures of Thinking Table
+            let cotHtml = "";
+            let cotValue = item["cultures of thinking elements"] || "";
+            if (cotValue.toString().trim() !== "") {
+                let rows = cotValue.split(',').map(el => `<tr><td>• ${el.trim()}</td></tr>`).join('');
+                cotHtml = `
+                    <div class="cot-section">
+                        <div class="cot-title">Cultures of Thinking Elements:</div>
+                        <table class="cot-table">${rows}</table>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <h3>${item["name"] || 'N/A'}</h3>
                 <div class="meta-item"><strong>Date:</strong> ${item["date"] || 'TBC'}</div>
@@ -204,6 +225,8 @@
                 <div class="meta-item"><strong>Attendees:</strong> ${item["attendees"] || '0'}</div>
                 <div class="synopsis"><strong>Description:</strong><br>${item["brief description"] || 'No description.'}</div>
                 
+                ${cotHtml}
+
                 <div class="card-actions">
                     ${regUrl ? `<a href="${regUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>` : ''}
                     ${fbUrl ? `

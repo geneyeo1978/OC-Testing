@@ -12,33 +12,24 @@
             background: #2c5282; 
             color: white; 
             border-bottom: 3px solid #ebf8ff; 
-            display: flex; /* Flexbox aligns logo and text on one line */
+            display: flex; 
             align-items: center; 
-            justify-content: center; /* Center everything */
-            padding: 8px 20px; /* Reduced vertical padding */
-            flex-wrap: wrap; /* Wraps on mobile */
-            gap: 15px; /* Space between logo and text */
+            justify-content: center; 
+            padding: 8px 20px; 
+            flex-wrap: wrap; 
+            gap: 15px; 
         }
 
-        .school-logo {
-            height: 40px; /* Set logo height to fit banner */
-            width: auto;
-        }
-
-        .banner-text {
-            font-weight: 600;
-        }
-
+        .school-logo { height: 40px; width: auto; }
+        .banner-text { font-weight: 600; }
         .signup-banner a { color: #fff; text-decoration: underline; margin-left: 5px; }
         
-        /* CONTAINER & OTHER STYLES */
         .container { max-width: 1000px; margin: auto; padding: 20px; position: relative; }
         header { text-align: center; margin-bottom: 30px; color: #1a365d; }
         
-        /* MOBILE ADJUSTMENT FOR BANNER */
         @media (max-width: 768px) {
             .signup-banner { flex-direction: column; text-align: center; padding: 12px 20px; gap: 8px; }
-            .school-logo { height: 35px; } /* Slightly smaller on mobile */
+            .school-logo { height: 35px; }
         }
 
         .section-title { border-bottom: 2px solid #cbd5e0; padding-bottom: 10px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -61,7 +52,7 @@
         .meta-item strong { min-width: 110px; color: #2d3748; flex-shrink: 0; }
         .synopsis { font-size: 0.95rem; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 6px; flex-grow: 1; border-left: 3px solid #e2e8f0; white-space: pre-wrap; }
         
-        /* NEW CoT STYLES */
+        /* CoT BOX STYLES */
         .cot-section { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; }
         .cot-title { font-weight: bold; font-size: 0.85rem; color: #2c5282; margin-bottom: 5px; }
         .cot-table { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.4; color: #4a5568; }
@@ -74,45 +65,26 @@
         .reg-btn:hover { background: #1e4e8c; }
         .fb-btn { background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; }
         .fb-btn:hover { background: #e2e8f0; }
-
-        .affirmation-hint { 
-            font-family: 'Arial Narrow', Arial, sans-serif; 
-            font-size: 0.75rem; 
-            color: #718096; 
-            text-align: center; 
-            margin-top: -5px; 
-            font-style: italic;
-        }
+        .affirmation-hint { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 0.75rem; color: #718096; text-align: center; margin-top: -5px; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="signup-banner">
     <img src="logo.png" alt="School Logo" class="school-logo">
-    <div class="banner-text">
-         I want to open my classroom! 
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a>
-    </div>
+    <div class="banner-text"> I want to open my classroom! <a href="https://docs.google.com/forms/d/e/1FAIpQLSdxOp3sV6D_ZTCWPRbs2QMlnwLebszO3Ivem3mlZ5GP7fW95A/viewform?usp=header" target="_blank">Click here to sign up</a></div>
 </div>
 
 <div class="container">
     <header><h1>Saints Open Classroom Directory</h1></header>
-    
     <div id="upcoming-section">
         <h2 class="section-title">Next 3 Upcoming Sessions <span id="lastUpdated" class="update-tag">Loading...</span></h2>
         <div id="upcoming-results" class="grid"></div>
     </div>
-
     <h2 class="section-title">Directory Search</h2>
     <div class="controls">
-        <div class="control-group">
-            <label>Filter by Teacher</label>
-            <select id="teacherFilter"><option value="">Select a Teacher...</option></select>
-        </div>
-        <div class="control-group">
-            <label>Filter by Date</label>
-            <select id="dateFilter"><option value="">Select a Date...</option></select>
-        </div>
+        <div class="control-group"><label>Filter by Teacher</label><select id="teacherFilter"><option value="">Select a Teacher...</option></select></div>
+        <div class="control-group"><label>Filter by Date</label><select id="dateFilter"><option value="">Select a Date...</option></select></div>
         <button class="btn-show-all" onclick="showAllSessions()">Show All Sessions</button>
         <button class="btn-reset" onclick="resetFilters()">Clear</button>
     </div>
@@ -121,7 +93,6 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlbRM6t__bd0YcFwFIr4yYYw6db87i6Ta9zYZcd_HwGNMj3m2t6P79PY3fTcQXy8_A/exec"; 
-    
     let upcomingData = [];
     let masterData = [];
 
@@ -157,16 +128,13 @@
     }
 
     function sortDates(a, b) { return parseDate(a) - parseDate(b); }
-
     function parseDate(dateStr) {
         if (!dateStr || dateStr === "undefined") return new Date(0);
         const parts = dateStr.split('/');
         return new Date(parts[2], parts[1] - 1, parts[0]);
     }
 
-    function displayUpcoming() {
-        renderCards(upcomingData.slice(0, 3), 'upcoming-results');
-    }
+    function displayUpcoming() { renderCards(upcomingData.slice(0, 3), 'upcoming-results'); }
 
     function handleFilterChange(triggeredByType) {
         const tSelect = document.getElementById('teacherFilter');
@@ -203,18 +171,32 @@
             const regUrl = item["register link"];
             const fbUrl = item["feedback link"];
 
-            // Logic for Cultures of Thinking Table
+            // --- START OF SMART SPLITTER LOGIC ---
             let cotHtml = "";
             let cotValue = item["cultures of thinking elements"] || "";
             if (cotValue.toString().trim() !== "") {
-                let rows = cotValue.split(',').map(el => `<tr><td>• ${el.trim()}</td></tr>`).join('');
-                cotHtml = `
-                    <div class="cot-section">
-                        <div class="cot-title">Cultures of Thinking Elements:</div>
-                        <table class="cot-table">${rows}</table>
-                    </div>
-                `;
+                const sentenceStarts = [
+                    "For classrooms", "We can't", "To create", "Students learn", 
+                    "Learning is", "Learning and", "Learning occurs", 
+                    "Questions drive", "The opportunities", "We make"
+                ];
+                let items = [];
+                let parts = cotValue.split(',');
+                let currentBuffer = "";
+                parts.forEach(part => {
+                    let trimmedPart = part.trim();
+                    if (sentenceStarts.some(start => trimmedPart.startsWith(start))) {
+                        if (currentBuffer) items.push(currentBuffer);
+                        currentBuffer = trimmedPart;
+                    } else {
+                        currentBuffer += (currentBuffer ? ", " : "") + trimmedPart;
+                    }
+                });
+                if (currentBuffer) items.push(currentBuffer);
+                let rows = items.map(el => `<tr><td>• ${el.trim()}</td></tr>`).join('');
+                cotHtml = `<div class="cot-section"><div class="cot-title">Cultures of Thinking Elements:</div><table class="cot-table">${rows}</table></div>`;
             }
+            // --- END OF SMART SPLITTER LOGIC ---
 
             card.innerHTML = `
                 <h3>${item["name"] || 'N/A'}</h3>
@@ -224,15 +206,10 @@
                 <div class="meta-item"><strong>TG:</strong> ${item["tg"] || 'N/A'}</div>
                 <div class="meta-item"><strong>Attendees:</strong> ${item["attendees"] || '0'}</div>
                 <div class="synopsis"><strong>Description:</strong><br>${item["brief description"] || 'No description.'}</div>
-                
                 ${cotHtml}
-
                 <div class="card-actions">
                     ${regUrl ? `<a href="${regUrl}" target="_blank" class="action-link reg-btn">Register for this Open Classroom</a>` : ''}
-                    ${fbUrl ? `
-                        <a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Affirmation</a>
-                        <div class="affirmation-hint">Your affirmation will go directly to the teacher.</div>
-                    ` : ''}
+                    ${fbUrl ? `<a href="${fbUrl}" target="_blank" class="action-link fb-btn">Send Affirmation</a><div class="affirmation-hint">Your affirmation will go directly to the teacher.</div>` : ''}
                 </div>
             `;
             container.appendChild(card);

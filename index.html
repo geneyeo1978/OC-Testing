@@ -175,24 +175,18 @@
             let cotHtml = "";
             let cotValue = item["cultures of thinking elements"] || "";
             if (cotValue.toString().trim() !== "") {
-                const sentenceStarts = [
-                    "For classrooms", "We can't", "To create", "Students learn", 
-                    "Learning is", "Learning and", "Learning occurs", 
-                    "Questions drive", "The opportunities", "We make"
-                ];
-                let items = [];
                 let parts = cotValue.split(',');
-                let currentBuffer = "";
+                let items = [];
                 parts.forEach(part => {
                     let trimmedPart = part.trim();
-                    if (sentenceStarts.some(start => trimmedPart.startsWith(start))) {
-                        if (currentBuffer) items.push(currentBuffer);
-                        currentBuffer = trimmedPart;
-                    } else {
-                        currentBuffer += (currentBuffer ? ", " : "") + trimmedPart;
+                    if (trimmedPart.startsWith("Mindset")) {
+                        items.push(trimmedPart);
+                    } else if (items.length > 0) {
+                        items[items.length - 1] += ", " + trimmedPart;
+                    } else if (trimmedPart !== "") {
+                        items.push(trimmedPart);
                     }
                 });
-                if (currentBuffer) items.push(currentBuffer);
                 let rows = items.map(el => `<tr><td>• ${el.trim()}</td></tr>`).join('');
                 cotHtml = `<div class="cot-section"><div class="cot-title">Cultures of Thinking Elements:</div><table class="cot-table">${rows}</table></div>`;
             }
